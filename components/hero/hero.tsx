@@ -130,7 +130,7 @@ export function Hero(): ReactNode {
             </p>
 
             {/* Big Name with Accent Underline */}
-            <h1 className="font-sans text-[2.4rem] sm:text-[3.15rem] lg:text-[3.75rem] font-bold leading-[1.04] tracking-tight text-foreground">
+            <h1 className="font-sans text-[2.15rem] sm:text-[3.15rem] lg:text-[3.75rem] font-bold leading-[1.04] tracking-tight text-foreground">
               <span className="relative inline-block">
                 Sultan
                 <span
@@ -145,7 +145,7 @@ export function Hero(): ReactNode {
             </h1>
 
             {/* Headline with Rotating Theme-aligned Word */}
-            <div className="text-[16px] sm:text-[20px] font-medium leading-[1.3] tracking-tight text-foreground/90">
+            <div className="text-[15px] sm:text-[20px] font-medium leading-[1.3] tracking-tight text-foreground/90">
               <span>
                 {lang === "id"
                   ? "Saya seorang Software Engineer"
@@ -170,7 +170,7 @@ export function Hero(): ReactNode {
 
           {/* Right Column: Morphing Portrait / Avatar with iOS 26 Glassmorphic Squircle */}
           <ScaleUnblur className="flex justify-center md:justify-end">
-            <div className="group relative aspect-square w-full max-w-[260px] sm:max-w-[310px] md:max-w-[350px] lg:max-w-[390px] transition-transform duration-500 ease-out hover:scale-[1.02]">
+            <div className="group relative aspect-square w-full max-w-[210px] sm:max-w-[280px] md:max-w-[350px] lg:max-w-[390px] transition-transform duration-500 ease-out hover:scale-[1.02]">
               {/* iOS Liquid Glass Frost Cyan Ambient Glow */}
               <div
                 className="pointer-events-none absolute -inset-3 rounded-[3.2rem] bg-gradient-to-tr from-sky-400/35 via-cyan-400/20 to-transparent dark:from-sky-400/25 dark:via-cyan-400/10 dark:to-transparent opacity-85 blur-2xl transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"

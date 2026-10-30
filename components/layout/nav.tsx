@@ -26,6 +26,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { portfolioData } from "@/data/portfolio";
 import { useLanguage } from "@/lib/language-context";
 
 function useIsMounted(): boolean {
@@ -65,10 +66,10 @@ function DockItem({
     return val - bounds.x - bounds.width / 2;
   });
 
-  const widthSync = useTransform(distance, [-140, 0, 140], [40, 72, 40]);
+  const widthSync = useTransform(distance, [-140, 0, 140], [42, 72, 42]);
   const width = useSpring(widthSync, { mass: 0.1, stiffness: 240, damping: 16 });
 
-  const iconSizeSync = useTransform(distance, [-140, 0, 140], [18, 32, 18]);
+  const iconSizeSync = useTransform(distance, [-140, 0, 140], [19, 32, 19]);
   const iconSize = useSpring(iconSizeSync, { mass: 0.1, stiffness: 240, damping: 16 });
 
   const content = (
@@ -84,6 +85,7 @@ function DockItem({
           : "border border-foreground/10 bg-foreground/5 text-foreground/80 hover:text-sky-400 dark:hover:text-sky-300 hover:border-sky-400/40 hover:bg-sky-400/10 shadow-xs"
       }`}
     >
+      {/* Tooltip ONLY on desktop devices to prevent stuck mobile popups */}
       <AnimatePresence>
         {isHovered && (
           <motion.div
@@ -91,7 +93,7 @@ function DockItem({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 2, scale: 0.9 }}
             transition={{ duration: 0.12 }}
-            className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-background/95 px-2 py-0.5 text-[11px] font-medium text-foreground shadow-md border border-foreground/10 whitespace-nowrap pointer-events-none backdrop-blur-md z-50"
+            className="hidden md:block absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-background/95 px-2 py-0.5 text-[11px] font-medium text-foreground shadow-md border border-foreground/10 whitespace-nowrap pointer-events-none backdrop-blur-md z-50"
           >
             {label}
           </motion.div>
@@ -192,14 +194,7 @@ export function Nav(): ReactNode {
     });
   };
 
-  const navItems: Array<{
-    id: string;
-    label: string;
-    href: string;
-    icon: React.ComponentType<{ className?: string }>;
-    isActive?: boolean | undefined;
-    isExternal?: boolean | undefined;
-  }> = [
+  const navItems = [
     {
       id: "home",
       label: lang === "id" ? "Beranda" : "Home",
@@ -223,29 +218,32 @@ export function Nav(): ReactNode {
     },
     {
       id: "project",
-      label: lang === "id" ? "Proyek" : "Project",
+      label: lang === "id" ? "Proyek" : "Projects",
       href: "/projects",
       icon: FolderGit2,
       isActive: pathname === "/projects" || pathname.startsWith("/projects/"),
     },
-    
     {
       id: "contact",
-      label: lang === "id" ? "Kontak Saya" : "Contact Me",
-      href: "#contact",
+      label: lang === "id" ? "Kontak Email" : "Contact Me",
+      href: `mailto:${portfolioData.personal.email}`,
       icon: Mail,
+      isExternal: true,
     },
   ];
 
   return (
     <nav
-      aria-label="Dock Navigation"
-      className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
+      aria-label="Navigation"
+      className="fixed bottom-4 sm:bottom-6 left-1/2 z-50 -translate-x-1/2 max-w-[calc(100vw-20px)]"
     >
+      {/* ========================================================= */}
+      {/* 1. DESKTOP DOCK (Apple macOS spring physics & magnification) */}
+      {/* ========================================================= */}
       <motion.div
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
-        className="flex h-16 items-end gap-2.5 sm:gap-3 rounded-2xl border border-foreground/10 dark:border-white/10 bg-background/85 dark:bg-[#0c0e14]/85 px-3.5 pb-2.5 shadow-2xl dark:shadow-[0_15px_35px_rgba(0,0,0,0.65),0_0_20px_rgba(56,189,248,0.1)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10"
+        className="hidden md:flex h-16 items-end gap-2.5 sm:gap-3 rounded-2xl border border-foreground/10 dark:border-white/10 bg-background/85 dark:bg-[#0c0e14]/85 px-3.5 pb-2.5 shadow-2xl dark:shadow-[0_15px_35px_rgba(0,0,0,0.65),0_0_20px_rgba(56,189,248,0.1)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10"
       >
         {navItems.map((item) => (
           <DockItem
@@ -302,6 +300,71 @@ export function Nav(): ReactNode {
           </div>
         </DockItem>
       </motion.div>
+
+      {/* ========================================================= */}
+      {/* 2. MOBILE NATIVE PILL BAR (Ultra-Smooth, Zero-Lag, Touch) */}
+      {/* ========================================================= */}
+      <div className="flex md:hidden items-center gap-1.5 rounded-full border border-foreground/15 dark:border-white/15 bg-background/90 dark:bg-[#0c0e14]/90 px-2.5 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(56,189,248,0.12)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isCurrent = item.isActive;
+
+          if (item.isExternal) {
+            return (
+              <a
+                key={item.id}
+                href={item.href}
+                aria-label={item.label}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/75 active:scale-90 active:bg-foreground/10 transition-all cursor-pointer"
+              >
+                <Icon className="h-4.5 w-4.5" />
+              </a>
+            );
+          }
+
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              aria-label={item.label}
+              className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 cursor-pointer active:scale-90 ${
+                isCurrent
+                  ? "border border-sky-400/60 bg-sky-400/20 text-sky-500 dark:text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.35)]"
+                  : "text-foreground/70 hover:text-foreground active:bg-foreground/10"
+              }`}
+            >
+              <Icon className="h-4.5 w-4.5" />
+            </Link>
+          );
+        })}
+
+        {/* Subtle Hairline Divider */}
+        <div className="h-5 w-px bg-foreground/15 mx-0.5" aria-hidden="true" />
+
+        {/* Language Switch Mobile Pill */}
+        <button
+          type="button"
+          onClick={toggleLang}
+          aria-label="Switch Language"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold text-sky-500 dark:text-sky-300 active:scale-90 active:bg-foreground/10 transition-all cursor-pointer"
+        >
+          {lang === "id" ? "ID" : "EN"}
+        </button>
+
+        {/* Theme Switch Mobile Pill */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="Toggle Theme"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/75 active:scale-90 active:bg-foreground/10 transition-all cursor-pointer"
+        >
+          {mounted && isDark ? (
+            <Sun className="h-4.5 w-4.5 text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" />
+          ) : (
+            <Moon className="h-4.5 w-4.5" />
+          )}
+        </button>
+      </div>
     </nav>
   );
 }

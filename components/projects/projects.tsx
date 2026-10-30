@@ -207,11 +207,11 @@ export function Projects(): ReactNode {
                 key={project.id}
                 className="sticky transition-all duration-300"
                 style={{
-                  top: `calc(5.5rem + ${index * 1.85}rem)`,
+                  top: `calc(4.25rem + ${index * 1.35}rem)`,
                 }}
               >
                 <article
-                  className={`group relative min-h-[520px] lg:h-[72vh] lg:min-h-[560px] lg:max-h-[660px] w-full overflow-hidden rounded-3xl sm:rounded-[2rem] border bg-gradient-to-br ${project.gradient.overlay} ${project.gradient.border} p-6 sm:p-9 lg:p-12 shadow-[0_25px_60px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-300`}
+                  className={`group relative min-h-[460px] sm:min-h-[520px] lg:h-[72vh] lg:min-h-[560px] lg:max-h-[660px] w-full overflow-hidden rounded-3xl sm:rounded-[2rem] border bg-gradient-to-br ${project.gradient.overlay} ${project.gradient.border} p-5 sm:p-9 lg:p-12 shadow-[0_25px_60px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all duration-300`}
                 >
                   {/* Subtle Top Inner Highlight */}
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />

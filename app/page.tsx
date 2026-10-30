@@ -13,7 +13,7 @@ export default function HomePage(): ReactNode {
   return (
     <main
       id="main-content"
-      className="fixed inset-0 flex items-center justify-center overflow-hidden select-none"
+      className="relative flex min-h-[100dvh] w-full flex-col items-center justify-center overflow-x-hidden px-4 pt-10 pb-32 sm:py-0 select-none"
     >
       <Hero />
     </main>

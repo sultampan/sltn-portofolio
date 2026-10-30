@@ -132,6 +132,15 @@ export function PortraitMorph({
     const container = containerRef.current;
     if (!container) return;
 
+    // Skip heavy WebGL canvas loop on mobile/touch screens to ensure zero lag & maximum battery efficiency
+    const isTouch =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
+
+    if (isTouch) {
+      return;
+    }
+
     const renderer = new Renderer({
       alpha: true,
       premultipliedAlpha: false,

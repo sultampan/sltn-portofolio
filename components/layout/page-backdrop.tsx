@@ -11,8 +11,12 @@ export function PageBackdrop(): ReactNode {
       {/* Subtle Specular Ambient Vignette */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(56,189,248,0.12),transparent_70%)] dark:bg-[radial-gradient(ellipse_80%_60%_at_50%_-10%,rgba(56,189,248,0.08),transparent_70%)]" />
 
-      {/* Luminous Azure Flow Waves with Cyan Specular Highlights */}
-      <div className="absolute inset-0 opacity-45 dark:opacity-60">
+      {/* Mobile-Optimized Lightweight Ambient Glow (0% GPU overhead, locked 120 FPS) */}
+      <div className="md:hidden absolute inset-0 bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,rgba(56,189,248,0.22),transparent_70%)] dark:bg-[radial-gradient(ellipse_100%_80%_at_50%_-20%,rgba(56,189,248,0.18),transparent_70%)]" />
+      <div className="md:hidden absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.1),transparent_50%),radial-gradient(circle_at_top_right,rgba(6,182,212,0.1),transparent_50%)]" />
+
+      {/* Desktop-Only Luminous Azure Flow Waves with Cyan Specular Highlights */}
+      <div className="hidden md:block absolute inset-0 opacity-45 dark:opacity-60">
         <ShaderFlow
           brightness={1.8}
           iterations={11}
