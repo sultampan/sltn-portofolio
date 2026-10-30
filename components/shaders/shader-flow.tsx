@@ -138,6 +138,17 @@ export function ShaderFlow(props: ShaderFlowProps): ReactNode {
     const el = ref.current;
     if (!el) return;
 
+    // Skip heavy WebGL canvas on touch devices (iPad, tablets, phones)
+    // to preserve 120 FPS buttery smooth scrolling and prevent device overheating
+    const isTouchOrTablet =
+      typeof window !== "undefined" &&
+      (window.matchMedia("(pointer: coarse), (hover: none)").matches ||
+        window.innerWidth < 1024);
+
+    if (isTouchOrTablet) {
+      return;
+    }
+
     const r = new Renderer({
       dpr: Math.min(window.devicePixelRatio || 1, 1),
       alpha: false,

@@ -37,6 +37,30 @@ function useIsMounted(): boolean {
   );
 }
 
+/**
+ * Accurately detects touch devices (iPad, iPhone, Android, Touchscreen tablets)
+ * vs pointer/mouse devices (Mac, Windows desktop/laptop).
+ */
+function useIsTouch(): boolean {
+  return useSyncExternalStore(
+    (callback) => {
+      if (typeof window === "undefined") return () => {};
+      const mq = window.matchMedia("(hover: none), (pointer: coarse)");
+      mq.addEventListener("change", callback);
+      return () => mq.removeEventListener("change", callback);
+    },
+    () => {
+      if (typeof window === "undefined") return false;
+      return (
+        window.matchMedia("(hover: none), (pointer: coarse)").matches ||
+        (typeof navigator !== "undefined" &&
+          (navigator.maxTouchPoints > 0 || "ontouchstart" in window))
+      );
+    },
+    () => false
+  );
+}
+
 interface DockItemProps {
   mouseX: MotionValue<number>;
   icon?: React.ComponentType<{ className?: string }> | undefined;
@@ -48,7 +72,7 @@ interface DockItemProps {
   children?: ReactNode;
 }
 
-function DockItem({
+function DesktopDockItem({
   mouseX,
   icon: Icon,
   label,
@@ -85,7 +109,7 @@ function DockItem({
           : "border border-foreground/10 bg-foreground/5 text-foreground/80 hover:text-sky-400 dark:hover:text-sky-300 hover:border-sky-400/40 hover:bg-sky-400/10 shadow-xs"
       }`}
     >
-      {/* Tooltip ONLY on desktop devices to prevent stuck mobile popups */}
+      {/* Tooltip strictly on desktop mouse hover */}
       <AnimatePresence>
         {isHovered && (
           <motion.div
@@ -93,7 +117,7 @@ function DockItem({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 2, scale: 0.9 }}
             transition={{ duration: 0.12 }}
-            className="hidden md:block absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-background/95 px-2 py-0.5 text-[11px] font-medium text-foreground shadow-md border border-foreground/10 whitespace-nowrap pointer-events-none backdrop-blur-md z-50"
+            className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-background/95 px-2 py-0.5 text-[11px] font-medium text-foreground shadow-md border border-foreground/10 whitespace-nowrap pointer-events-none backdrop-blur-md z-50"
           >
             {label}
           </motion.div>
@@ -151,6 +175,7 @@ export function Nav(): ReactNode {
   const pathname = usePathname();
   const { lang, toggleLang } = useLanguage();
   const mounted = useIsMounted();
+  const isTouch = useIsTouch();
   const { setTheme, resolvedTheme } = useTheme();
   const isDark = mounted && resolvedTheme === "dark";
   const mouseX = useMotionValue(Infinity);
@@ -235,18 +260,92 @@ export function Nav(): ReactNode {
   return (
     <nav
       aria-label="Navigation"
-      className="fixed bottom-4 sm:bottom-6 left-1/2 z-50 -translate-x-1/2 max-w-[calc(100vw-20px)]"
+      className="fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] left-1/2 z-50 -translate-x-1/2 max-w-[calc(100vw-20px)]"
     >
       {/* ========================================================= */}
-      {/* 1. DESKTOP DOCK (Apple macOS spring physics & magnification) */}
+      {/* 1. TOUCH & TABLET FLOATING BAR (iPad, Tablets, iPhone)     */}
+      {/* Automatically active on any touchscreen (hover: none)     */}
+      {/* Zero hover emulation bugs, single-tap instant navigation  */}
+      {/* ========================================================= */}
+      <div
+        className={`${
+          mounted && !isTouch ? "hidden" : "flex"
+        } items-center gap-1.5 sm:gap-2.5 rounded-full border border-foreground/15 dark:border-white/15 bg-background/90 dark:bg-[#0c0e14]/90 px-3 py-1.5 sm:px-4 sm:py-2 shadow-[0_12px_35px_rgba(0,0,0,0.5),0_0_20px_rgba(56,189,248,0.12)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10`}
+      >
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isCurrent = item.isActive;
+
+          if (item.isExternal) {
+            return (
+              <a
+                key={item.id}
+                href={item.href}
+                aria-label={item.label}
+                className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-foreground/75 active:scale-90 active:bg-foreground/10 transition-transform cursor-pointer"
+              >
+                <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5" />
+              </a>
+            );
+          }
+
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              aria-label={item.label}
+              className={`relative flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full transition-all duration-150 cursor-pointer active:scale-90 ${
+                isCurrent
+                  ? "border border-sky-400/60 bg-sky-400/20 text-sky-500 dark:text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.35)] ring-1 ring-sky-400/30"
+                  : "text-foreground/75 hover:text-foreground active:bg-foreground/10"
+              }`}
+            >
+              <Icon className="h-5 w-5 sm:h-5.5 sm:w-5.5" />
+            </Link>
+          );
+        })}
+
+        {/* Subtle Hairline Divider */}
+        <div className="h-5 sm:h-6 w-px bg-foreground/15 mx-0.5 sm:mx-1" aria-hidden="true" />
+
+        {/* Language Switch Touch Button */}
+        <button
+          type="button"
+          onClick={toggleLang}
+          aria-label="Switch Language"
+          className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-xs sm:text-[13px] font-bold text-sky-500 dark:text-sky-300 active:scale-90 active:bg-foreground/10 transition-transform cursor-pointer"
+        >
+          {lang === "id" ? "ID" : "EN"}
+        </button>
+
+        {/* Theme Switch Touch Button */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label="Toggle Theme"
+          className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full text-foreground/75 active:scale-90 active:bg-foreground/10 transition-transform cursor-pointer"
+        >
+          {mounted && isDark ? (
+            <Sun className="h-5 w-5 sm:h-5.5 sm:w-5.5 text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" />
+          ) : (
+            <Moon className="h-5 w-5 sm:h-5.5 sm:w-5.5" />
+          )}
+        </button>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 2. DESKTOP MOUSE DOCK (Mac, Windows PC with mouse/trackpad)*/}
+      {/* Only active on pointer:fine & hover:hover devices         */}
       {/* ========================================================= */}
       <motion.div
         onMouseMove={(e) => mouseX.set(e.clientX)}
         onMouseLeave={() => mouseX.set(Infinity)}
-        className="hidden md:flex h-16 items-end gap-2.5 sm:gap-3 rounded-2xl border border-foreground/10 dark:border-white/10 bg-background/85 dark:bg-[#0c0e14]/85 px-3.5 pb-2.5 shadow-2xl dark:shadow-[0_15px_35px_rgba(0,0,0,0.65),0_0_20px_rgba(56,189,248,0.1)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10"
+        className={`${
+          mounted && !isTouch ? "flex" : "hidden"
+        } h-16 items-end gap-2.5 sm:gap-3 rounded-2xl border border-foreground/10 dark:border-white/10 bg-background/85 dark:bg-[#0c0e14]/85 px-3.5 pb-2.5 shadow-2xl dark:shadow-[0_15px_35px_rgba(0,0,0,0.65),0_0_20px_rgba(56,189,248,0.1)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10`}
       >
         {navItems.map((item) => (
-          <DockItem
+          <DesktopDockItem
             key={item.id}
             mouseX={mouseX}
             icon={item.icon}
@@ -261,7 +360,7 @@ export function Nav(): ReactNode {
         <div className="mx-0.5 sm:mx-1 h-6 w-px bg-foreground/10 mb-2 self-end" aria-hidden="true" />
 
         {/* Language Switch Dock Item */}
-        <DockItem
+        <DesktopDockItem
           mouseX={mouseX}
           label={
             lang === "id"
@@ -273,10 +372,10 @@ export function Nav(): ReactNode {
           <span className="text-xs font-bold tracking-tight text-sky-400 dark:text-sky-300">
             {lang === "id" ? "ID" : "EN"}
           </span>
-        </DockItem>
+        </DesktopDockItem>
 
         {/* Theme Toggle Dock Item */}
-        <DockItem
+        <DesktopDockItem
           mouseX={mouseX}
           label={
             mounted
@@ -298,73 +397,8 @@ export function Nav(): ReactNode {
               <Moon className="h-full w-full" />
             )}
           </div>
-        </DockItem>
+        </DesktopDockItem>
       </motion.div>
-
-      {/* ========================================================= */}
-      {/* 2. MOBILE NATIVE PILL BAR (Ultra-Smooth, Zero-Lag, Touch) */}
-      {/* ========================================================= */}
-      <div className="flex md:hidden items-center gap-1.5 rounded-full border border-foreground/15 dark:border-white/15 bg-background/90 dark:bg-[#0c0e14]/90 px-2.5 py-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.5),0_0_20px_rgba(56,189,248,0.12)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isCurrent = item.isActive;
-
-          if (item.isExternal) {
-            return (
-              <a
-                key={item.id}
-                href={item.href}
-                aria-label={item.label}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/75 active:scale-90 active:bg-foreground/10 transition-all cursor-pointer"
-              >
-                <Icon className="h-4.5 w-4.5" />
-              </a>
-            );
-          }
-
-          return (
-            <Link
-              key={item.id}
-              href={item.href}
-              aria-label={item.label}
-              className={`relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-200 cursor-pointer active:scale-90 ${
-                isCurrent
-                  ? "border border-sky-400/60 bg-sky-400/20 text-sky-500 dark:text-sky-300 shadow-[0_0_12px_rgba(56,189,248,0.35)]"
-                  : "text-foreground/70 hover:text-foreground active:bg-foreground/10"
-              }`}
-            >
-              <Icon className="h-4.5 w-4.5" />
-            </Link>
-          );
-        })}
-
-        {/* Subtle Hairline Divider */}
-        <div className="h-5 w-px bg-foreground/15 mx-0.5" aria-hidden="true" />
-
-        {/* Language Switch Mobile Pill */}
-        <button
-          type="button"
-          onClick={toggleLang}
-          aria-label="Switch Language"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold text-sky-500 dark:text-sky-300 active:scale-90 active:bg-foreground/10 transition-all cursor-pointer"
-        >
-          {lang === "id" ? "ID" : "EN"}
-        </button>
-
-        {/* Theme Switch Mobile Pill */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          aria-label="Toggle Theme"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-foreground/75 active:scale-90 active:bg-foreground/10 transition-all cursor-pointer"
-        >
-          {mounted && isDark ? (
-            <Sun className="h-4.5 w-4.5 text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.6)]" />
-          ) : (
-            <Moon className="h-4.5 w-4.5" />
-          )}
-        </button>
-      </div>
     </nav>
   );
 }
