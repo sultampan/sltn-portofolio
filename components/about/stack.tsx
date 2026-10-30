@@ -2,33 +2,10 @@
 
 import { RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { portfolioData, type TechStackItem as Chip } from "@/data/portfolio";
+import { useLanguage } from "@/lib/language-context";
 
-type Chip = {
-  label: string;
-  slug: string;
-  bg: string;
-  fg: string;
-  iconUrl?: string;
-};
-
-const CHIPS: Chip[] = [
-  {
-    label: "Figma",
-    slug: "figma",
-    bg: "#1f1f1f",
-    fg: "#ffffff",
-    iconUrl: "https://svgl.app/library/figma.svg",
-  },
-  { label: "React", slug: "react", bg: "#1FB6CB", fg: "#ffffff" },
-  { label: "Next.js", slug: "nextdotjs", bg: "#1f1f1f", fg: "#ffffff" },
-  { label: "TypeScript", slug: "typescript", bg: "#2F74C0", fg: "#ffffff" },
-  { label: "shadcn/ui", slug: "shadcnui", bg: "#5b54ff", fg: "#ffffff" },
-  { label: "Cursor", slug: "cursor", bg: "#111111", fg: "#ffffff" },
-  { label: "GSAP", slug: "gsap", bg: "#0AE448", fg: "#0a0a0a" },
-  { label: "GitHub", slug: "github", bg: "#181717", fg: "#ffffff" },
-  { label: "Vercel", slug: "vercel", bg: "#0a0a0a", fg: "#ffffff" },
-  { label: "Tailwind CSS", slug: "tailwindcss", bg: "#2BBCF5", fg: "#ffffff" },
-];
+const CHIPS: Chip[] = portfolioData.techStack;
 
 const CHIP_RADIUS = 14;
 const ICON_RADIUS = 10;
@@ -42,6 +19,7 @@ type ChipState = {
 };
 
 export function Stack(): ReactNode {
+  const { lang } = useLanguage();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLDivElement | null>(null);
   const chipRefs = useRef<Array<HTMLDivElement | null>>([]);
@@ -212,13 +190,16 @@ export function Stack(): ReactNode {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between gap-3">
         <h3 className="text-foreground text-[15px] font-semibold tracking-tight">
-          Stack
+          {lang === "id" ? "Teknologi & Tools" : "Stack"}
         </h3>
+        <span className="text-[11px] font-mono text-foreground/50 bg-foreground/4 border border-foreground/6 rounded-full px-2.5 py-0.5 select-none">
+          {lang === "id" ? "🎮 Bisa diseret & dilempar!" : "🎮 Drag & toss chips!"}
+        </span>
       </div>
 
-      <div className="border-foreground/5 bg-foreground/2 dark:bg-foreground/5 relative h-40 overflow-hidden rounded-4xl border sm:h-64">
+      <div className="border-foreground/5 bg-foreground/2 dark:bg-foreground/5 relative h-48 overflow-hidden rounded-4xl border sm:h-72">
         <button
           type="button"
           onClick={() => setResetKey((k) => k + 1)}

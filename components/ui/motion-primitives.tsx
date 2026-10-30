@@ -51,3 +51,29 @@ export function ScaleUnblur({
     </motion.div>
   );
 }
+
+export function ScrollReveal({
+  children,
+  delay = 0,
+  duration = 0.8,
+  yOffset = 28,
+  className,
+}: {
+  children: ReactNode;
+  delay?: number;
+  duration?: number;
+  yOffset?: number;
+  className?: string;
+}): ReactNode {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: yOffset, filter: "blur(12px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration, delay, ease: EASE }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}

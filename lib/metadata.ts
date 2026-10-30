@@ -1,27 +1,20 @@
+import { portfolioData } from "@/data/portfolio";
 import type { Metadata } from "next";
 
 export const siteConfig = {
-  name: "Portfolio",
-  description:
-    "A modern, accessible portfolio template built with Next.js, Tailwind CSS, and TypeScript.",
-  url: "https://example.com",
-  ogImage: "/og-image.png",
-  creator: "@yourhandle",
+  name: portfolioData.site.title,
+  description: portfolioData.site.description,
+  url: portfolioData.site.url,
+  ogImage: portfolioData.site.ogImage,
+  creator: portfolioData.site.creator,
   authors: [
     {
-      name: "Your Name",
-      url: "https://example.com",
+      name: portfolioData.personal.name,
+      url: portfolioData.site.url,
     },
   ],
-  keywords: [
-    "portfolio",
-    "personal site",
-    "Next.js",
-    "React",
-    "Tailwind CSS",
-    "TypeScript",
-  ],
-} as const;
+  keywords: portfolioData.site.keywords,
+};
 
 export const baseMetadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
