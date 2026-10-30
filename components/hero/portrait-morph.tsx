@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Renderer, Program, Mesh, Triangle, Transform, Texture } from "ogl";
+import { useLanguage } from "@/lib/language-context";
 
 export type PortraitMorphProps = {
   srcA: string;
@@ -120,22 +121,47 @@ export function PortraitMorph({
   alt,
   className,
 }: PortraitMorphProps): ReactNode {
+  const { lang } = useLanguage();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [ready, setReady] = useState(false);
+  const [touchToggled, setTouchToggled] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const hoverRef = useRef(false);
   const progressRef = useRef(0);
   const originRef = useRef<[number, number]>([0.5, 0.5]);
   const directionRef = useRef<[number, number]>([1, 0]);
   const lastPointerRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
+  const handleTapToggle = () => {
+    setTouchToggled((prev) => {
+      const next = !prev;
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (next) {
+        timeoutRef.current = setTimeout(() => {
+          setTouchToggled(false);
+        }, 3200);
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // Skip heavy WebGL canvas loop on mobile/touch screens to ensure zero lag & maximum battery efficiency
+    // Skip heavy WebGL canvas loop on mobile/touch screens (iPad, iPhone, Android)
+    // to ensure zero lag & maximum battery efficiency
     const isTouch =
       typeof window !== "undefined" &&
-      (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 768);
+      (window.matchMedia("(pointer: coarse), (hover: none)").matches ||
+        window.innerWidth < 1024);
 
     if (isTouch) {
       return;
@@ -313,18 +339,56 @@ export function PortraitMorph({
   return (
     <div
       ref={containerRef}
-      role="img"
-      aria-label={alt}
-      className={className}
-      style={{ position: "relative", width: "100%", height: "100%" }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${alt} - ${touchToggled ? "waving pose" : "portrait pose"}`}
+      onClick={handleTapToggle}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleTapToggle();
+        }
+      }}
+      className={`relative h-full w-full select-none cursor-pointer overflow-hidden ${className ?? ""}`}
     >
+      {/* Touchscreen Tap-to-Wave Display (iPad, iPhone, Android) */}
       {!ready ? (
-        <img
-          src={srcA}
-          alt={alt}
-          draggable={false}
-          className="absolute inset-0 h-full w-full select-none object-cover"
-        />
+        <>
+          <img
+            src={srcA}
+            alt={alt}
+            draggable={false}
+            className={`absolute inset-0 h-full w-full select-none object-cover transition-all duration-500 ease-out ${
+              touchToggled ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
+            }`}
+          />
+          <img
+            src={srcB}
+            alt={`${alt} waving`}
+            draggable={false}
+            className={`absolute inset-0 h-full w-full select-none object-cover transition-all duration-500 ease-out ${
+              touchToggled ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+            }`}
+          />
+
+          {/* Interactive Tap-to-Wave Floating Pill Badge on Touch Devices */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none select-none">
+            <div className="flex items-center gap-1.5 rounded-full border border-white/25 bg-black/60 dark:bg-black/75 px-3 py-1 text-[11px] font-mono font-medium text-white shadow-xl backdrop-blur-md transition-all duration-300">
+              <span className={touchToggled ? "animate-bounce" : "animate-pulse"}>
+                {touchToggled ? "👋" : "👆"}
+              </span>
+              <span>
+                {touchToggled
+                  ? lang === "id"
+                    ? "Halo!"
+                    : "Hi there!"
+                  : lang === "id"
+                    ? "Sentuh foto"
+                    : "Tap to wave"}
+              </span>
+            </div>
+          </div>
+        </>
       ) : null}
     </div>
   );
