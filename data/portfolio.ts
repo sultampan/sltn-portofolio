@@ -165,9 +165,9 @@ export const portfolioData: PortfolioData = {
       ],
     },
     portrait: {
-      default: "/messi.jpg",
-      hover: "/messi_wave.jpg",
-      alt: "Lionel Messi portrait",
+      default: "/sultan.jpg",
+      hover: "/sultan_wave.jpg",
+      alt: "Sultan Syarif Al portrait",
     },
     email: "sultansyarif630@gmail.com",
     location: "Malang, Indonesia",
